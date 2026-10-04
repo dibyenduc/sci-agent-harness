@@ -1,0 +1,19 @@
+  1 run=1 compare_to_spec      execute  failed
+  2 run=1 get_formulation      execute  executed
+  3 run=1 check_inventory      execute  failed
+  4 run=1 draft_experiment     execute  failed
+  5 run=1 create_task          queue    pending
+  6 run=1 compare_to_spec      execute  failed
+  7 run=1 check_inventory      execute  executed
+  8 run=1 draft_experiment     execute  failed
+  9 run=1 update_hypothesis    queue    pending
+ 10 run=1 compare_to_spec      execute  failed
+ 11 run=1 check_inventory      execute  executed
+ 12 run=1 draft_experiment     execute  executed
+ 13 run=1 create_task          queue    pending
+1|compare_to_spec|{"formulation": "F-0001", "spec_name": "viscosity"}|{"error": "spec not found: viscosity"}
+3|check_inventory|{"ingredient": "silicone oil", "required_kg": 5}|{"error": "ingredient not found: silicone oil"}
+4|draft_experiment|{"base_formulation": "F-0001", "changes": [{"ingredient": "silicone oil", "new_wt_pct": 15}, {"ingredient": "polyester resin", "new_wt_pct": 20}], "rationale": "Reduce silicone oil content and increase polyester resin to lower viscosity"}|{"error": "ingredient not in base formulation: silicone oil"}
+6|compare_to_spec|{"formulation": "F-0001", "spec_name": "Viscosity"}|{"error": "spec not found: Viscosity"}
+8|draft_experiment|{"base_formulation": "F-0001", "changes": [{"ingredient": "xylene", "new_wt_pct": 15}, {"ingredient": "polyester resin", "new_wt_pct": 20}], "rationale": "Reduce xylene content and increase polyester resin to lower viscosity"}|{"error": "ingredient not in base formulation: polyester resin"}
+10|compare_to_spec|{"formulation": "F-0001", "spec_name": "Viscosity (mPa.s)"}|{"error": "spec not found: Viscosity (mPa.s)"}

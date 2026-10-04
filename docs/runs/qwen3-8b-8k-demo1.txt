@@ -1,0 +1,28 @@
+uv run python -m harness.seed
+ingredient 9
+formulation 200
+sample 200
+measurement 800
+uv run python -m harness.cli watch --once
+model=qwen3-8b-8k base_url=http://localhost:11434/v1/
+0 event(s)
+uv run python -m harness.cli inject --formulation F-0001 --viscosity 4200
+inserted measurement 801
+uv run python -m harness.cli watch --once --autonomy approve
+model=qwen3-8b-8k base_url=http://localhost:11434/v1/
+1 event(s)
+{
+  "run_id": 1,
+  "status": "done",
+  "final": "**Summary:**  \n- **Findings:** F-0001 viscosity (4200 mPa.s) exceeds the coating_std spec (max 2500 mPa.s). Other properties (cure_time, hardness, gloss) are within spec.  \n- **Formulation:** Contains 13.84% amine_hardener and 0.16% flow_additive.  \n- **Inventory:** Sufficient stock for amine_hardener (47 kg) and flow_additive (2.3 kg).  \n- **Corrective Action:** Drafted experiment F-0001-D1 to reduce amine_hardener to 10% and increase flow_additive to 0.5%.  \n- **Pending:** Experiment draft requires human approval (status: pending_approval). Task \"Investigate F-0001 viscosity discrepancy...\" created.  \n\n**Human Attention Needed:**  \n1. Approve the draft experiment (F-0001-D1) to proceed.  \n2. Verify if the duplicate viscosity measurement (245 vs. 4200 mPa.s) is a data error.  \n3. Confirm if additional adjustments are needed beyond the draft experiment.",
+  "steps": 3,
+  "tokens": 6547
+}
+uv run python -m harness.cli pending
+6: create_task {"title": "Investigate F-0001 viscosity discrepancy and execute corrective experiment"}
+  1 run=1 compare_to_spec      execute  executed
+  2 run=1 get_formulation      execute  executed
+  3 run=1 check_inventory      execute  executed
+  4 run=1 check_inventory      execute  executed
+  5 run=1 draft_experiment     execute  executed
+  6 run=1 create_task          queue    pending

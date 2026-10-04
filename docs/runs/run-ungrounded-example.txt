@@ -1,0 +1,5 @@
+1|ungrounded|2|2720|Here is the JSON for the function call:
+
+```
+{"name": "compare_to_spec", "parameters": {"formulation": "F-0001"}}
+```

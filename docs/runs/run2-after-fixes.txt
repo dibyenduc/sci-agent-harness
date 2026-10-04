@@ -1,0 +1,7 @@
+  1 run=1 compare_to_spec      execute  executed
+  2 run=1 get_formulation      execute  executed
+  3 run=1 check_inventory      execute  executed
+  4 run=1 check_inventory      execute  executed
+  5 run=1 draft_experiment     execute  executed
+  6 run=1 create_task          queue    pending
+1|done|3|6547
