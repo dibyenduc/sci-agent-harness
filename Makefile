@@ -23,3 +23,11 @@ demo:
 	uv run python -m harness.cli inject --formulation F-0001 --viscosity 4200
 	uv run python -m harness.cli watch --once --autonomy approve
 	uv run python -m harness.cli pending
+
+demo-graph:
+	uv run python -m harness.seed
+	uv run python -m harness.cli watch --once
+	uv run python -m harness.cli inject --formulation F-0001 --viscosity 4200
+	uv run python -m harness.cli watch --once --autonomy approve --engine graph
+	uv run python -m harness.cli pending
+

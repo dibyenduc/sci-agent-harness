@@ -20,7 +20,7 @@ Chat-only agents are the easy first version. The hard problems show up later:
 | 1 | Three-layer data model, seed generator, tests | Done |
 | 2 | Tools and MCP server | Done |
 | 3 | Harness core: loop, action ladder, event triggers | Done |
-| 4 | LangGraph variant and comparison | Planned |
+| 4 | LangGraph engine and comparison | Done |
 | 5 | Evaluation suite and tracing | Planned |
 | 6 | Goal memory and tenant isolation | Planned |
 | 7 | Optional frontier-model sweep | Planned |
@@ -30,9 +30,10 @@ Chat-only agents are the easy first version. The hard problems show up later:
 1. **Data.** A SQLite database holds a synthetic lab data model in three layers: raw measurements, structured experiments, and scientific intent (hypotheses and specs).
 2. **Tools.** Eight typed tools (search, inspect, compare to spec, check inventory, convert units, draft experiment, create task, update hypothesis). Each has a risk level: `read`, `draft`, or `write`. The same functions are exposed over MCP.
 3. **Watcher.** A poller notices new measurements that fall outside spec, after unit conversion, and starts an agent run with no human prompt.
-4. **Loop.** A bounded agent loop with a step cap, a token budget, a repeated-call detector, and a grounding guard that flags runs where the model describes tool calls in text instead of making them.
-5. **Policy.** A per-run autonomy level decides whether each tool call executes, is queued for human approval, or is only recorded as a proposal.
-6. **Audit log.** Every action is stored with its arguments, result, and an inverse operation, so a human can approve, reject, or undo it.
+4. **Two engines, one behavior.** The agent loop exists as a plain state machine and as a LangGraph graph. Both share the same tools, policy, and audit store. A differential test checks that they produce identical status, steps, tokens, and audit logs on scripted runs.
+5. **Grounding guard.** If a model describes tool calls in text instead of making them, the run is nudged once, then marked `ungrounded` instead of `done`.
+6. **Policy.** A per-run autonomy level decides whether each tool call executes, is queued for human approval, or is only recorded as a proposal.
+7. **Audit log.** Every action is stored with its arguments, result, and an inverse operation, so a human can approve, reject, or undo it.
 
 ## Autonomy ladder
 
@@ -68,20 +69,21 @@ make test
 ollama pull qwen3:8b
 ollama create qwen3-8b-8k -f models/Modelfile.qwen3-8k   # 8192-token context
 
-make demo
+make demo          # plain engine
+make demo-graph    # LangGraph engine
 ```
 
-`make demo` reseeds the database, sets the watcher baseline, injects an out-of-spec viscosity result, lets the agent respond, and lists actions awaiting approval.
+The demo reseeds the database, sets the watcher baseline, injects an out-of-spec viscosity result, lets the agent respond, and lists actions awaiting approval.
 
-The Makefile pins `MODEL` so runs are reproducible. Override it with `make demo MODEL=llama3.1:latest`.
+The Makefile pins `MODEL` so runs are reproducible. Override it with `make demo MODEL=llama3.1:latest`. If you run the CLI directly, check `echo $MODEL` first, because a stale shell variable silently changes the model.
 
 The MCP SDK is pinned to 1.x (`mcp<2`). A migration to 2.x is on the to-do list.
 
 ## Command line
 
 ```bash
-uv run python -m harness.cli run --goal "Check F-0001 against spec" --autonomy approve
-uv run python -m harness.cli watch --once --autonomy approve
+uv run python -m harness.cli run --goal "Check F-0001 against spec" --autonomy approve --engine plain
+uv run python -m harness.cli watch --once --autonomy approve --engine graph
 uv run python -m harness.cli inject --formulation F-0001 --viscosity 4200
 uv run python -m harness.cli actions      # audit log
 uv run python -m harness.cli pending      # actions awaiting approval
@@ -90,7 +92,13 @@ uv run python -m harness.cli reject <id>
 uv run python -m harness.cli undo <id>
 ```
 
-Make targets: `setup`, `seed`, `test`, `mcp`, `demo`, `clean`.
+Make targets: `setup`, `seed`, `test`, `mcp`, `demo`, `demo-graph`, `clean`.
+
+To compare both engines three times each on one model and save every run:
+
+```bash
+bash scripts/compare_engines.sh qwen3-8b-8k
+```
 
 ## Model configuration
 
@@ -102,11 +110,22 @@ export API_KEY=ollama
 export MODEL=qwen3-8b-8k
 ```
 
-## Observed behavior (Phase 3)
+## Observed behavior
 
-Single scenario (out-of-spec viscosity event), `approve` autonomy, local model `qwen3:8b` with an 8192-token context. Three runs: all finished `done` with 0 failed actions (4–5 executed, 1 queued for approval). An earlier baseline run (model not recorded) had 6 failed actions out of 13. The improvement cannot be attributed to one change, because the model, tool error messages, and a tool default changed together. Three runs of one scenario is a smoke test, not a benchmark. Real measurement starts in Phase 5.
+Single scenario (out-of-spec viscosity event), `approve` autonomy, three runs per cell. This is a smoke test, not a benchmark. Real measurement starts in Phase 5.
 
-Run logs are in `docs/runs/`.
+| Model | Engine | Runs | Outcome |
+|---|---|---|---|
+| qwen3-8b-8k | plain | 3 | 3 `done`, 0 failed actions, 3 steps |
+| qwen3-8b-8k | graph | 3 | 3 `done`, 0 failed actions, 3 steps |
+| llama3.1 | plain | 3 | 3 `ungrounded`, no tool calls made |
+| llama3.1 | graph | 3 | 3 `ungrounded`, no tool calls made |
+
+- The model decided the outcome. The engine did not.
+- The two engines matched on every run except one plain run (5 executed actions instead of 4), whose cause is not established.
+- An earlier baseline run (model not recorded) had 6 failed actions out of 13. The later improvement cannot be attributed to one change, because the model, tool error messages, and a tool default changed together.
+
+Run logs are in `docs/runs/`. The engine comparison is in `docs/langgraph-vs-plain.md`.
 
 ## What broke along the way
 
@@ -115,17 +134,21 @@ Details are in `docs/what-broke-at-v2.md`. Short version:
 - **Narrated tool calls.** One model wrote tool calls as text and reported results it never received. The loop now flags such runs as `ungrounded`.
 - **Invented names.** Models substituted general chemistry knowledge for the actual catalog. Tool errors now list valid options.
 - **Summaries misreport the log.** Read the audit log, not the model's summary.
+- **Small default context window.** A 4096-token window is tight for an agent loop. A larger-context model variant is pinned in `models/`.
 
 ## Repository layout
 
 src/harness/
 models.py, db.py, seed.py, units.py data model, schema, synthetic data
 tools/ tool registry, lab tools, MCP server
-core/ loop, policy, audit store, approvals,
-event watcher, model client
+core/ plain loop, policy, audit store,
+approvals, event watcher, model client,
+shared tool-execution helper
+graph/ LangGraph engine
 cli.py command line
-tests/ unit tests
+tests/ unit tests and engine parity tests
 models/ Ollama Modelfile for a larger context
+scripts/ engine comparison script
 docs/ write-ups and saved run logs
 
 

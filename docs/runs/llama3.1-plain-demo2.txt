@@ -1,0 +1,10 @@
+model=llama3.1:latest base_url=http://localhost:11434/v1/ engine=plain
+1 event(s)
+{
+  "run_id": 1,
+  "status": "ungrounded",
+  "final": "Here is the JSON for the function call:\n\n```\n{\"name\": \"compare_to_spec\", \"parameters\": {\"formulation\": \"F-0001\"}}\n```",
+  "steps": 2,
+  "tokens": 2720
+}
+Audit log for this run:
