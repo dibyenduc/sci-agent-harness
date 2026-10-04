@@ -1,0 +1,9 @@
+task_id,category,status,passed,failed_checks,tags,clean,n_actions,n_failed,steps,tokens,latency_s,model,engine,temperature,repeat
+ambiguous-01,ambiguous,done,False,final_mentions_any,missed_gap,True,1,0,2,3525,65.9,qwen3-8b-8k,plain,0.0,1
+ambiguous-02,ambiguous,done,True,,,True,0,0,1,2048,40.5,qwen3-8b-8k,plain,0.0,1
+ambiguous-03,ambiguous,done,False,final_mentions_any,missed_gap,False,1,1,2,3297,49.8,qwen3-8b-8k,plain,0.0,1
+ambiguous-04,ambiguous,done,False,final_mentions_any,no_tool_use;missed_gap,True,0,0,1,1181,9.5,qwen3-8b-8k,plain,0.0,1
+comparison-01,comparison,done,True,,,True,2,0,2,3131,24.1,qwen3-8b-8k,plain,0.0,1
+comparison-02,comparison,done,True,,,True,2,0,2,3375,32.9,qwen3-8b-8k,plain,0.0,1
+comparison-03,comparison,done,True,,,True,3,0,2,4163,50.5,qwen3-8b-8k,plain,0.0,1
+comparison-04,comparison,done,True,,,True,2,0,2,2985,22.2,qwen3-8b-8k,plain,0.0,1

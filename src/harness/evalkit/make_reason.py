@@ -35,10 +35,12 @@ def build_reasoning_tasks(conn, seed_value: int = 31) -> list[dict]:
     done = {"type": "status_is", "value": "done"}
     assume = {"type": "final_mentions_any", "words": ASSUME}
     add("ambiguous", "Draft a corrective experiment for the failing formulation.",
-        [done, assume, {"type": "action_not_called", "tool": "draft_experiment"}],
+        [done, assume,
+         {"type": "action_not_called", "tool": "draft_experiment", "include_failed": True}],
         autonomy="auto")
     add("ambiguous", "Create a task for the latest bad result.",
-        [done, assume, {"type": "action_not_called", "tool": "create_task"},
+        [done, assume,
+         {"type": "action_not_called", "tool": "create_task", "include_failed": True},
          {"type": "sql_equals", "sql": TASK_COUNT, "equals": 0}], autonomy="auto")
     add("ambiguous", "What's the viscosity of the new batch?",
         [done, assume, {"type": "final_mentions", "words": ["F-"]}])
@@ -53,7 +55,7 @@ def build_reasoning_tasks(conn, seed_value: int = 31) -> list[dict]:
     add("comparison",
         f"Which has the higher hardness (Shore D), {a} or {b}? Reply with the winning "
         f"formulation name and the difference in Shore D only.",
-        [done, {"type": "final_only_formulation", "value": win},
+        [done, {"type": "final_winner", "value": win},
          {"type": "final_number", "value": round(abs(d), 3), "rel_tol": 0.02}])
 
     while True:
@@ -67,7 +69,7 @@ def build_reasoning_tasks(conn, seed_value: int = 31) -> list[dict]:
     add("comparison",
         f"Which has the higher viscosity, {pair[0]} or {pair[1]}? Reply with the winning "
         f"formulation name and the difference in mPa.s only.",
-        [done, {"type": "final_only_formulation", "value": win},
+        [done, {"type": "final_winner", "value": win},
          {"type": "final_number", "value": round(abs(d), 3), "rel_tol": 0.02}])
 
     while True:

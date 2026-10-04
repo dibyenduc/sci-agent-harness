@@ -1,6 +1,7 @@
 import re
 
 FORM_RE = re.compile(r"F-\d{4}(?:-D\d+)?")
+WIN_RE = re.compile(r"winn\w*[^\n]{0,40}?(F-\d{4}(?:-D\d+)?)", re.I)
 NUM_RE = re.compile(r"-?\d[\d,]*\.?\d*")
 NEG_FAIL = re.compile(r"\b(no|none|zero|not|never)\b[^.\n]{0,20}\bfail\w*")
 FAIL_WORDS = ["fail", "out of spec", "outside", "exceeds", "not within",
@@ -29,10 +30,19 @@ def verdict(text: str) -> str:
     return "unknown"
 
 
-def _action_count(conn, tool: str) -> int:
+def winner(text: str):
+    m = WIN_RE.search(text)
+    if m:
+        return m.group(1)
+    found = FORM_RE.findall(text)
+    return found[0] if found else None
+
+
+def _action_count(conn, tool: str, include_failed: bool = False) -> int:
+    statuses = "'executed','pending','proposed'" + (",'failed'" if include_failed else "")
     return conn.execute(
-        "SELECT COUNT(*) FROM agent_action WHERE tool=? "
-        "AND status IN ('executed','pending','proposed')", (tool,)).fetchone()[0]
+        f"SELECT COUNT(*) FROM agent_action WHERE tool=? AND status IN ({statuses})",
+        (tool,)).fetchone()[0]
 
 
 def run_check(conn, result: dict, c: dict):
@@ -57,6 +67,9 @@ def run_check(conn, result: dict, c: dict):
     if t == "final_only_formulation":
         found = set(FORM_RE.findall(final))
         return found == {c["value"]}, f"want {c['value']}, got {sorted(found)}"
+    if t == "final_winner":
+        w = winner(final)
+        return w == c["value"], f"want {c['value']}, got {w}"
     if t == "final_order":
         seen: list[str] = []
         for f in FORM_RE.findall(final):
@@ -73,7 +86,7 @@ def run_check(conn, result: dict, c: dict):
         n = _action_count(conn, c["tool"])
         return n > 0, f"{c['tool']} x{n}"
     if t == "action_not_called":
-        n = _action_count(conn, c["tool"])
+        n = _action_count(conn, c["tool"], c.get("include_failed", False))
         return n == 0, f"{c['tool']} x{n}"
     raise ValueError(f"unknown check type: {t}")
 
