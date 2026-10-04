@@ -1,7 +1,7 @@
 MODEL := qwen3-8b-8k
 export MODEL
 
-.PHONY: setup seed test clean
+.PHONY: setup seed test smoke clean demo demo-graph tasks tasks-extra tasks-reason eval
 
 setup:
 	uv sync
@@ -11,6 +11,9 @@ seed:
 
 test:
 	uv run pytest -q
+
+smoke:
+	uv run pytest -q tests/test_smoke.py
 
 clean:
 	rm -f lab.db
@@ -33,6 +36,12 @@ demo-graph:
 
 tasks:
 	uv run python -m harness.evalkit.make_tasks
+
+tasks-extra:
+	uv run python -m harness.evalkit.make_extra
+
+tasks-reason:
+	uv run python -m harness.evalkit.make_reason
 
 eval:
 	uv run python -m harness.evalkit.run $(ARGS)
