@@ -76,6 +76,10 @@ def main():
     if not BASE_DB.exists():
         raise SystemExit("Base database missing. Run: make tasks")
     tag = f"{a.model}-{a.engine}-t{a.temperature}".replace(":", "-")
+    if a.category:
+        tag += f"-{a.category}"
+    if a.limit:
+        tag += f"-n{a.limit}"
     model = OpenAICompatModel(model=a.model, temperature=a.temperature)
     runner = get_runner(a.engine)
     tasks = load_tasks(a.tasks, a.category, a.limit)
