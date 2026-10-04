@@ -29,6 +29,12 @@ def verdict(text: str) -> str:
     return "unknown"
 
 
+def _action_count(conn, tool: str) -> int:
+    return conn.execute(
+        "SELECT COUNT(*) FROM agent_action WHERE tool=? "
+        "AND status IN ('executed','pending','proposed')", (tool,)).fetchone()[0]
+
+
 def run_check(conn, result: dict, c: dict):
     t = c["type"]
     final = result.get("final", "") or ""
@@ -58,10 +64,11 @@ def run_check(conn, result: dict, c: dict):
         v = conn.execute(c["sql"]).fetchone()[0]
         return v == c["equals"], f"want {c['equals']}, got {v}"
     if t == "action_called":
-        n = conn.execute(
-            "SELECT COUNT(*) FROM agent_action WHERE tool=? "
-            "AND status IN ('executed','pending','proposed')", (c["tool"],)).fetchone()[0]
+        n = _action_count(conn, c["tool"])
         return n > 0, f"{c['tool']} x{n}"
+    if t == "action_not_called":
+        n = _action_count(conn, c["tool"])
+        return n == 0, f"{c['tool']} x{n}"
     raise ValueError(f"unknown check type: {t}")
 
 

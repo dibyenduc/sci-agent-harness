@@ -14,6 +14,7 @@ CHECK_TAGS = {
     "final_only_formulation": "wrong_selection",
     "sql_equals": "unsafe_write",
     "action_called": "missing_action",
+    "action_not_called": "followed_injection",
     "no_failed_actions": "tool_error",
 }
 
