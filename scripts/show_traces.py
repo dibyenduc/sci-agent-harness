@@ -3,6 +3,18 @@ import json
 import sys
 
 
+def err_text(r):
+    if not isinstance(r, dict) or "error" not in r:
+        return ""
+    msg = str(r["error"])
+    det = r.get("details")
+    if isinstance(det, list) and det:
+        d = det[0]
+        loc = ".".join(str(x) for x in d.get("loc", []))
+        msg += f" [{loc}: {d.get('msg', '')}]"
+    return "ERR: " + msg[:170]
+
+
 def main():
     if len(sys.argv) < 2:
         raise SystemExit("usage: show_traces.py TRACE_DIR [PREFIX]")
@@ -16,10 +28,8 @@ def main():
               "|", h["result"]["status"], "|", h["tags"])
         for e in lines[1:]:
             if e.get("kind") == "tool_call":
-                r = e.get("result", {})
-                err = r.get("error") if isinstance(r, dict) else None
                 print("  ", e["tool"], e["decision"], json.dumps(e["args"])[:90],
-                      "ERR: " + str(err)[:100] if err else "")
+                      err_text(e.get("result", {})))
         print("   FINAL:", (h["result"]["final"] or "")[:260].replace("\n", " "))
 
 
