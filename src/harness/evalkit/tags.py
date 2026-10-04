@@ -1,3 +1,4 @@
+from ..tools import REGISTRY
 from .scorers import numbers
 
 STATUS_TAGS = {
@@ -24,6 +25,7 @@ def failure_tags(task: dict, result: dict, outs: list[dict], events: list[dict])
         return []
     tags: list[str] = []
     status = result.get("status", "") or ""
+    final = result.get("final", "") or ""
     if status.startswith("error"):
         tags.append("crash")
     elif status in STATUS_TAGS:
@@ -31,8 +33,9 @@ def failure_tags(task: dict, result: dict, outs: list[dict], events: list[dict])
     n_calls = sum(1 for e in events if e.get("kind") == "tool_call")
     if n_calls == 0 and "crash" not in tags:
         tags.append("no_tool_use")
+        if any(name in final for name in REGISTRY):
+            tags.append("calls_as_text")
     failed = {o["type"] for o in outs if not o["ok"]}
-    final = result.get("final", "") or ""
     if "final_number" in failed:
         for c in task["checks"]:
             if c["type"] != "final_number":
