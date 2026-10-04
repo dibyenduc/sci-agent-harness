@@ -3,7 +3,7 @@ import time
 import typer
 from .db import connect
 from .tools import Ctx
-from .core import approvals, events
+from .core import approvals, events, goals
 from .core.loop import run_agent
 from .core.model import OpenAICompatModel
 from .core.store import ensure_tables
@@ -100,6 +100,43 @@ def actions(db: str = "lab.db", tenant: str = "tenant_a"):
         typer.echo(f"{r['id']:>3} run={r['run_id']} {r['tool']:<20} {r['decision']:<8} {r['status']}")
 
 
+@app.command()
+def goal_create(text: str, db: str = "lab.db", tenant: str = "tenant_a"):
+    gid = goals.create_goal(_ctx(db, tenant), text)
+    typer.echo(f"created goal {gid}")
+
+
+@app.command()
+def goal_list(status: str = "", db: str = "lab.db", tenant: str = "tenant_a"):
+    for g in goals.list_goals(_ctx(db, tenant), status or None):
+        typer.echo(f"{g['id']:>3} [{g['status']}] {g['text']}")
+
+
+@app.command()
+def goal_show(goal_id: int, db: str = "lab.db", tenant: str = "tenant_a"):
+    ctx = _ctx(db, tenant)
+    g = goals.get_goal(ctx, goal_id)
+    typer.echo(f"goal {g['id']} [{g['status']}]: {g['text']}")
+    typer.echo(goals.render_memory(ctx, goal_id) or "No notes yet.")
+
+
+@app.command()
+def goal_close(goal_id: int, status: str = "done", db: str = "lab.db",
+               tenant: str = "tenant_a"):
+    goals.set_status(_ctx(db, tenant), goal_id, status)
+    typer.echo(f"goal {goal_id} is now {status}")
+
+
+@app.command()
+def goal_run(goal_id: int, autonomy: str = "approve", engine: str = "plain",
+             db: str = "lab.db", tenant: str = "tenant_a"):
+    ctx, model, runner = _ctx(db, tenant), OpenAICompatModel(), _runner(engine)
+    g = goals.get_goal(ctx, goal_id)
+    typer.echo(f"model={model.model} engine={engine} goal={goal_id}")
+    r = runner(model, ctx, g["text"], autonomy, goal_id=goal_id)
+    typer.echo(json.dumps(r, indent=2))
+    _show_actions(ctx, r["run_id"])
+
+
 if __name__ == "__main__":
     app()
-

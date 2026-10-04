@@ -2,7 +2,7 @@ import json
 from typing import TypedDict
 from langgraph.graph import StateGraph, START, END
 from ..tools import REGISTRY, openai_schemas
-from ..core import store
+from ..core import goal_run, store
 from ..core.exec_call import execute_tool_call
 from ..core.loop import SYSTEM, NUDGE
 
@@ -95,8 +95,9 @@ def build_graph(model, ctx, run_id, autonomy="approve", trigger="manual",
 
 def run_agent_graph(model, ctx, goal, autonomy="approve", trigger="manual",
                     max_steps=8, token_budget=40000, on_event=None,
-                    checkpointer=None, thread_id=None) -> dict:
+                    checkpointer=None, thread_id=None, goal_id=None) -> dict:
     store.ensure_tables(ctx.conn)
+    user_text = goal if goal_id is None else goal_run.prepare(ctx, goal_id, goal)
     run_id = store.start_run(ctx, goal, trigger, autonomy)
     graph = build_graph(model, ctx, run_id, autonomy, trigger, max_steps,
                         token_budget, on_event, checkpointer)
@@ -105,11 +106,15 @@ def run_agent_graph(model, ctx, goal, autonomy="approve", trigger="manual",
               "recursion_limit": 2 * max_steps + 6}
     init: AgentState = {
         "messages": [{"role": "system", "content": SYSTEM},
-                     {"role": "user", "content": goal}],
+                     {"role": "user", "content": user_text}],
         "pending": [], "steps": 0, "tokens": 0, "acted": False, "nudges": 0,
         "seen": {}, "status": "running", "final": ""}
     out = graph.invoke(init, config)
     status = out["status"] if out["status"] != "running" else "max_steps"
     store.finish_run(ctx, run_id, status, out["final"], out["steps"], out["tokens"])
-    return {"run_id": run_id, "status": status, "final": out["final"],
-            "steps": out["steps"], "tokens": out["tokens"], "thread_id": tid}
+    res = {"run_id": run_id, "status": status, "final": out["final"],
+           "steps": out["steps"], "tokens": out["tokens"], "thread_id": tid}
+    if goal_id is not None:
+        res["goal_id"] = goal_id
+        res["note_id"] = goal_run.finish(ctx, goal_id, run_id, status, out["final"])
+    return res

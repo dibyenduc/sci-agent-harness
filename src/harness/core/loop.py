@@ -1,7 +1,7 @@
 import json
 from collections import Counter
 from ..tools import REGISTRY, call_tool, openai_schemas
-from . import store
+from . import goal_run, store
 from .policy import decide
 
 SYSTEM = (
@@ -17,12 +17,13 @@ NUDGE = ("You did not call any tools. Call them through the tool-calling interfa
          "not received from a tool.")
 
 def run_agent(model, ctx, goal, autonomy="approve", trigger="manual",
-              max_steps=8, token_budget=40000, on_event=None) -> dict:
+              max_steps=8, token_budget=40000, on_event=None, goal_id=None) -> dict:
     store.ensure_tables(ctx.conn)
     emit = on_event or (lambda kind, payload: None)
+    user_text = goal if goal_id is None else goal_run.prepare(ctx, goal_id, goal)
     run_id = store.start_run(ctx, goal, trigger, autonomy)
     messages = [{"role": "system", "content": SYSTEM},
-                {"role": "user", "content": goal}]
+                {"role": "user", "content": user_text}]
     schemas = openai_schemas()
     seen, tokens, status, final, steps = Counter(), 0, "max_steps", "", 0
     acted, nudges = False, 0
@@ -102,5 +103,9 @@ def run_agent(model, ctx, goal, autonomy="approve", trigger="manual",
             break
 
     store.finish_run(ctx, run_id, status, final, steps, tokens)
-    return {"run_id": run_id, "status": status, "final": final,
-            "steps": steps, "tokens": tokens}
+    out = {"run_id": run_id, "status": status, "final": final,
+           "steps": steps, "tokens": tokens}
+    if goal_id is not None:
+        out["goal_id"] = goal_id
+        out["note_id"] = goal_run.finish(ctx, goal_id, run_id, status, final)
+    return out
