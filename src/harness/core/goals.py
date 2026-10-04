@@ -1,9 +1,12 @@
 import json
+import re
 from .store import ensure_tables, now
 
 SUMMARY_MAX = 400
 ARGS_MAX = 200
+DIGEST_MAX = 300
 STATUSES = ("active", "done", "abandoned")
+SAFE_STR = re.compile(r"[A-Za-z0-9_.\-/ ]{1,24}")
 
 DDL = """
 CREATE TABLE IF NOT EXISTS agent_goal (
@@ -24,6 +27,50 @@ CREATE TABLE IF NOT EXISTS goal_note (
 def _ensure(ctx):
     ensure_tables(ctx.conn)
     ctx.conn.executescript(DDL)
+
+
+def _safe(v) -> str:
+    if isinstance(v, bool):
+        return str(v).lower()
+    if isinstance(v, int):
+        return str(v)
+    if isinstance(v, float):
+        return str(round(v, 3))
+    if isinstance(v, str) and SAFE_STR.fullmatch(v):
+        return v
+    return "?"
+
+
+def digest(tool: str, result) -> str:
+    if not isinstance(result, dict) or "error" in result:
+        return ""
+    try:
+        if tool == "compare_to_spec":
+            parts = [f"{_safe(c.get('property'))}={_safe(c.get('value', 'n/a'))} "
+                     f"{_safe(c.get('status'))}" for c in result.get("checks", [])]
+        elif tool == "get_formulation":
+            parts = [f"{_safe(m.get('property'))}={_safe(m.get('value'))} {_safe(m.get('unit'))}"
+                     for m in result.get("measurements", [])]
+        elif tool == "check_inventory":
+            parts = [f"stock_kg={_safe(result.get('stock_kg'))}",
+                     f"sufficient={_safe(result.get('sufficient'))}"]
+        elif tool == "draft_experiment":
+            parts = [f"formulation={_safe(result.get('formulation'))}",
+                     f"status={_safe(result.get('status'))}"]
+        elif tool == "create_task":
+            parts = [f"task_id={_safe(result.get('task_id'))}"]
+        elif tool == "update_hypothesis":
+            parts = [f"hypothesis_id={_safe(result.get('hypothesis_id'))}",
+                     f"status={_safe(result.get('status'))}"]
+        elif tool == "search_experiments":
+            parts = [f"count={_safe(result.get('count'))}"]
+        elif tool == "convert_units":
+            parts = [f"value={_safe(result.get('value'))} {_safe(result.get('unit'))}"]
+        else:
+            return ""
+    except (TypeError, AttributeError):
+        return ""
+    return "; ".join(parts)[:DIGEST_MAX]
 
 
 def create_goal(ctx, text: str) -> int:
@@ -81,15 +128,20 @@ def add_note(ctx, goal_id: int, run_id: int, summary: str, evidence: list[int],
     facts = []
     for i in ids:
         r = ctx.conn.execute(
-            "SELECT id, run_id, tool, args_json, status FROM agent_action"
+            "SELECT id, run_id, tool, args_json, status, result_json FROM agent_action"
             " WHERE id=? AND tenant_id=?", (i, ctx.tenant_id)).fetchone()
         if r is None:
             raise ValueError(f"evidence action not found: {i}")
         if r["run_id"] != run_id:
             raise ValueError(f"evidence action {i} belongs to run {r['run_id']}, "
                              f"not run {run_id}")
+        try:
+            result = json.loads(r["result_json"]) if r["result_json"] else None
+        except ValueError:
+            result = None
         facts.append({"action_id": r["id"], "tool": r["tool"],
-                      "args": json.loads(r["args_json"]), "status": r["status"]})
+                      "args": json.loads(r["args_json"]), "status": r["status"],
+                      "digest": digest(r["tool"], result)})
     clean = " ".join((summary or "").split())[:SUMMARY_MAX]
     cur = ctx.conn.execute(
         "INSERT INTO goal_note (tenant_id,goal_id,run_id,run_status,facts_json,summary,"
@@ -128,7 +180,10 @@ def render_memory(ctx, goal_id: int, max_notes: int = 5) -> str:
             lines.append("  verified: no tool actions were recorded.")
         for f in facts:
             args = json.dumps(f["args"], sort_keys=True)[:ARGS_MAX]
-            lines.append(f"  verified: {f['tool']} {args} -> {f['status']} "
-                         f"(action {f['action_id']})")
+            line = (f"  verified: {f['tool']} {args} -> {f['status']} "
+                    f"(action {f['action_id']})")
+            if f.get("digest"):
+                line += f" result: {f['digest']}"
+            lines.append(line)
         lines.append(f"  unverified summary: {json.dumps(r['summary'])}")
     return "\n".join(lines)
