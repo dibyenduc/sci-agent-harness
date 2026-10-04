@@ -37,3 +37,6 @@ dist/
 .idea/
 .DS_Store
 
+evals/.cache/
+evals/traces/
+

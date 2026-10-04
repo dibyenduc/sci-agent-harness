@@ -31,3 +31,9 @@ demo-graph:
 	uv run python -m harness.cli watch --once --autonomy approve --engine graph
 	uv run python -m harness.cli pending
 
+tasks:
+	uv run python -m harness.evalkit.make_tasks
+
+eval:
+	uv run python -m harness.evalkit.run $(ARGS)
+
