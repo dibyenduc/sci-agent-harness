@@ -13,6 +13,7 @@ from ..core.model import OpenAICompatModel
 from ..core.store import ensure_tables
 from .make_tasks import BASE_DB
 from .scorers import score
+from .tags import failure_tags
 
 
 def get_runner(engine: str):
@@ -46,17 +47,20 @@ def run_one(task, model, runner, trace_path):
             r = {"status": f"error:{type(e).__name__}", "final": str(e), "steps": 0, "tokens": 0}
         latency = time.time() - t0
         outs, passed = score(conn, r, task["checks"])
+        tags = failure_tags(task, r, outs, events)
         counts = {a["status"]: a["c"] for a in conn.execute(
             "SELECT status, COUNT(*) c FROM agent_action GROUP BY status")}
         conn.close()
     trace_path.parent.mkdir(parents=True, exist_ok=True)
     with open(trace_path, "w") as f:
-        f.write(json.dumps({"task": task, "result": r, "checks": outs}, default=str) + "\n")
+        f.write(json.dumps({"task": task, "result": r, "checks": outs, "tags": tags},
+                           default=str) + "\n")
         for e in events:
             f.write(json.dumps(e, default=str) + "\n")
     return {"task_id": task["id"], "category": task["category"], "status": r["status"],
             "passed": passed,
             "failed_checks": ";".join(o["type"] for o in outs if not o["ok"]),
+            "tags": ";".join(tags),
             "clean": counts.get("failed", 0) == 0,
             "n_actions": sum(counts.values()), "n_failed": counts.get("failed", 0),
             "steps": r.get("steps", 0), "tokens": r.get("tokens", 0),
@@ -95,7 +99,7 @@ def main():
                             "temperature": a.temperature, "repeat": rep})
                 rows.append(row)
                 print(f"{t['id']} r{rep}: {'PASS' if row['passed'] else 'FAIL'} "
-                      f"{row['status']} {row['latency_s']}s {row['failed_checks']}")
+                      f"{row['status']} {row['latency_s']}s {row['tags']}")
     finally:
         if rows:
             df = pd.DataFrame(rows)
@@ -105,9 +109,13 @@ def main():
                 n=("passed", "size"), pass_rate=("passed", "mean"),
                 clean=("clean", "mean"), tokens=("tokens", "mean"),
                 latency=("latency_s", "mean")).round(2).to_string())
+            tagged = df["tags"].fillna("").str.split(";").explode()
+            tagged = tagged[tagged != ""]
+            if len(tagged):
+                print("\nfailure tags:")
+                print(tagged.value_counts().to_string())
             print(f"\noverall pass rate: {df['passed'].mean():.2f} over {len(df)} runs")
 
 
 if __name__ == "__main__":
     main()
-
