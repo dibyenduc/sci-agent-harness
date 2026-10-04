@@ -8,11 +8,13 @@ from pathlib import Path
 import pandas as pd
 from ..db import connect
 from ..tools import Ctx
+from ..core.events import event_to_goal
 from ..core.loop import run_agent
 from ..core.model import OpenAICompatModel
 from ..core.store import ensure_tables
 from .make_tasks import BASE_DB
 from .scorers import score
+from .setup import apply_setup
 from .tags import failure_tags
 
 
@@ -30,6 +32,14 @@ def load_tasks(path, category=None, limit=None):
     return tasks[:limit] if limit else tasks
 
 
+def resolve_goal(task, setup_out):
+    if not task.get("goal_from_event"):
+        return task["goal"]
+    if not setup_out["events"]:
+        raise ValueError(f"task {task['id']} expects an event but setup produced none")
+    return event_to_goal(setup_out["events"][0])
+
+
 def run_one(task, model, runner, trace_path):
     with tempfile.TemporaryDirectory() as d:
         db = Path(d) / "w.db"
@@ -37,10 +47,13 @@ def run_one(task, model, runner, trace_path):
         conn = connect(str(db))
         ensure_tables(conn)
         ctx = Ctx(conn=conn, tenant_id="tenant_a")
+        setup_out = apply_setup(ctx, task.get("setup", []))
+        goal = resolve_goal(task, setup_out)
+        task = {**task, "goal": goal}
         events: list[dict] = []
         t0 = time.time()
         try:
-            r = runner(model, ctx, task["goal"], autonomy=task.get("autonomy", "approve"),
+            r = runner(model, ctx, goal, autonomy=task.get("autonomy", "approve"),
                        trigger=task.get("trigger", "manual"),
                        on_event=lambda k, p: events.append({"kind": k, **p}))
         except Exception as e:
