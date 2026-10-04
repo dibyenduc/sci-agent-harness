@@ -91,7 +91,8 @@ def run_agent(model, ctx, goal, autonomy="approve", trigger="manual",
                                        decision, st, note)
                 result = {**note, "action_id": aid}
             emit("tool_call", {"run_id": run_id, "tool": c["name"],
-                               "args": c["arguments"], "decision": decision})
+                               "args": c["arguments"], "decision": decision,
+                               "result": result})
             messages.append({"role": "tool", "tool_call_id": c["id"],
                              "content": json.dumps(result)})
         if stop:
@@ -103,4 +104,3 @@ def run_agent(model, ctx, goal, autonomy="approve", trigger="manual",
     store.finish_run(ctx, run_id, status, final, steps, tokens)
     return {"run_id": run_id, "status": status, "final": final,
             "steps": steps, "tokens": tokens}
-

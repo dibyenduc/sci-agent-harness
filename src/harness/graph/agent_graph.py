@@ -64,7 +64,8 @@ def build_graph(model, ctx, run_id, autonomy="approve", trigger="manual",
                 break
             result, decision = execute_tool_call(ctx, run_id, autonomy, c)
             emit("tool_call", {"run_id": run_id, "tool": c["name"],
-                               "args": c["arguments"], "decision": decision})
+                               "args": c["arguments"], "decision": decision,
+                               "result": result})
             messages.append({"role": "tool", "tool_call_id": c["id"],
                              "content": json.dumps(result)})
         if status == "running" and s["tokens"] > token_budget:
@@ -112,5 +113,3 @@ def run_agent_graph(model, ctx, goal, autonomy="approve", trigger="manual",
     store.finish_run(ctx, run_id, status, out["final"], out["steps"], out["tokens"])
     return {"run_id": run_id, "status": status, "final": out["final"],
             "steps": out["steps"], "tokens": out["tokens"], "thread_id": tid}
-
-
