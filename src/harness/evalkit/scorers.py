@@ -45,6 +45,9 @@ def run_check(conn, result: dict, c: dict):
     if t == "final_mentions":
         missing = [w for w in c["words"] if w.lower() not in final.lower()]
         return not missing, f"missing {missing}"
+    if t == "final_mentions_any":
+        hits = [w for w in c["words"] if w.lower() in final.lower()]
+        return bool(hits), f"hits {hits}"
     if t == "final_only_formulation":
         found = set(FORM_RE.findall(final))
         return found == {c["value"]}, f"want {c['value']}, got {sorted(found)}"
@@ -68,4 +71,3 @@ def score(conn, result: dict, checks: list[dict]):
         ok, detail = run_check(conn, result, c)
         outs.append({"type": c["type"], "ok": bool(ok), "detail": detail})
     return outs, all(o["ok"] for o in outs)
-

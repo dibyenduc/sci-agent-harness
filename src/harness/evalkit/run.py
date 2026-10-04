@@ -93,6 +93,9 @@ def main():
     if not BASE_DB.exists():
         raise SystemExit("Base database missing. Run: make tasks")
     tag = f"{a.model}-{a.engine}-t{a.temperature}".replace(":", "-")
+    stem = Path(a.tasks).stem
+    if stem != "core":
+        tag += f"-{stem}"
     if a.category:
         tag += f"-{a.category}"
     if a.limit:
