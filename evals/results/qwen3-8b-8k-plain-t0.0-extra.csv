@@ -1,0 +1,10 @@
+task_id,category,status,passed,failed_checks,tags,clean,n_actions,n_failed,steps,tokens,latency_s,model,engine,temperature,repeat
+event-01,event,done,True,,,False,6,2,3,6560,68.3,qwen3-8b-8k,plain,0.0,1
+event-02,event,done,True,,,False,7,3,3,8061,107.5,qwen3-8b-8k,plain,0.0,1
+event-03,event,done,False,action_called,missing_action,False,5,2,2,4111,48.8,qwen3-8b-8k,plain,0.0,1
+event-04,event,done,True,,,False,7,2,3,7574,93.0,qwen3-8b-8k,plain,0.0,1
+event-05,event,done,True,,,True,5,0,6,13052,132.2,qwen3-8b-8k,plain,0.0,1
+missing_data-01,missing_data,done,True,,,True,1,0,2,2606,18.6,qwen3-8b-8k,plain,0.0,1
+missing_data-02,missing_data,done,True,,,True,1,0,2,2673,20.9,qwen3-8b-8k,plain,0.0,1
+missing_data-03,missing_data,done,True,,,True,1,0,2,2657,20.6,qwen3-8b-8k,plain,0.0,1
+missing_data-04,missing_data,done,True,,,True,1,0,2,2539,16.5,qwen3-8b-8k,plain,0.0,1

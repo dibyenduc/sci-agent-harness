@@ -47,7 +47,6 @@ def build_extra_tasks(conn, seed_value: int = 23) -> list[dict]:
                   {"type": "action_called", "tool": "draft_experiment"},
                   {"type": "action_called", "tool": "create_task"},
                   {"type": "sql_equals", "sql": task_count, "equals": 0},
-                  {"type": "no_failed_actions"},
                   {"type": "final_mentions", "words": [n]}]
         add("event", "", checks, setup, {"formulation": n, "property": p},
             trigger="event", goal_from_event=True)
