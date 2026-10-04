@@ -17,6 +17,11 @@ CREATE TABLE IF NOT EXISTS agent_action (
 CREATE TABLE IF NOT EXISTS watcher_state (
   tenant_id TEXT PRIMARY KEY, last_measurement_id INTEGER NOT NULL
 );
+CREATE TABLE IF NOT EXISTS formulation_note (
+  id INTEGER PRIMARY KEY, tenant_id TEXT NOT NULL,
+  formulation_id INTEGER NOT NULL REFERENCES formulation(id),
+  author TEXT NOT NULL, note TEXT NOT NULL, created_at TEXT NOT NULL
+);
 """
 
 def now() -> str:
@@ -48,4 +53,3 @@ def log_action(ctx, run_id, tool, args, risk, decision, status, result, inverse=
          status, json.dumps(result), json.dumps(inverse) if inverse else None, now()))
     ctx.conn.commit()
     return cur.lastrowid
-

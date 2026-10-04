@@ -18,6 +18,19 @@ def _form(ctx, name):
     return row
 
 
+def _notes(ctx, formulation_id):
+    has = ctx.conn.execute(
+        "SELECT 1 FROM sqlite_master WHERE type='table' AND name='formulation_note'"
+    ).fetchone()
+    if not has:
+        return []
+    rows = ctx.conn.execute(
+        "SELECT author, note FROM formulation_note "
+        "WHERE tenant_id=? AND formulation_id=? ORDER BY id",
+        (ctx.tenant_id, formulation_id)).fetchall()
+    return [{"author": r["author"], "note": r["note"]} for r in rows]
+
+
 # 1. search_experiments
 class SearchArgs(BaseModel):
     property: str = Field(description=f"One of {sorted(CANONICAL)}")
@@ -73,9 +86,13 @@ def get_formulation(ctx: Ctx, a: GetFormArgs):
         "SELECT m.property, m.value, m.unit FROM measurement m "
         "JOIN sample s ON s.id=m.sample_id JOIN experiment e ON e.id=s.experiment_id "
         "WHERE e.formulation_id=? AND m.tenant_id=?", (f["id"], ctx.tenant_id)).fetchall()
-    return {"name": f["name"],
-            "ingredients": [{"name": r["name"], "wt_pct": r["amount_wt_pct"]} for r in items],
-            "measurements": [dict(r) for r in meas]}
+    out = {"name": f["name"],
+           "ingredients": [{"name": r["name"], "wt_pct": r["amount_wt_pct"]} for r in items],
+           "measurements": [dict(r) for r in meas]}
+    notes = _notes(ctx, f["id"])
+    if notes:
+        out["notes"] = notes
+    return out
 
 
 # 3. compare_to_spec
@@ -251,4 +268,3 @@ def update_hypothesis(ctx: Ctx, a: HypArgs):
     return {"hypothesis_id": a.hypothesis_id, "status": a.status,
             "inverse": {"op": "update_hypothesis", "hypothesis_id": a.hypothesis_id,
                         "status": r["status"]}}
-
