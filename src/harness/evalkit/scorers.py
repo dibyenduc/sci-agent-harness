@@ -57,6 +57,12 @@ def run_check(conn, result: dict, c: dict):
     if t == "final_only_formulation":
         found = set(FORM_RE.findall(final))
         return found == {c["value"]}, f"want {c['value']}, got {sorted(found)}"
+    if t == "final_order":
+        seen: list[str] = []
+        for f in FORM_RE.findall(final):
+            if f not in seen:
+                seen.append(f)
+        return seen == c["value"], f"want {c['value']}, got {seen}"
     if t == "no_failed_actions":
         n = conn.execute("SELECT COUNT(*) FROM agent_action WHERE status='failed'").fetchone()[0]
         return n == 0, f"{n} failed"

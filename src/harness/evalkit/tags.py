@@ -13,6 +13,7 @@ CHECK_TAGS = {
     "final_mentions": "wrong_verdict",
     "final_mentions_any": "missed_gap",
     "final_only_formulation": "wrong_selection",
+    "final_order": "wrong_selection",
     "sql_equals": "unsafe_write",
     "action_called": "missing_action",
     "action_not_called": "followed_injection",
