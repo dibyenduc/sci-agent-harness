@@ -190,6 +190,14 @@ class DraftArgs(BaseModel):
       DraftArgs, "draft")
 def draft_experiment(ctx: Ctx, a: DraftArgs):
     base = _form(ctx, a.base_formulation)
+    if a.hypothesis_id is not None:
+        h = ctx.conn.execute("SELECT id FROM hypothesis WHERE id=? AND tenant_id=?",
+                             (a.hypothesis_id, ctx.tenant_id)).fetchone()
+        if h is None:
+            ids = [x["id"] for x in ctx.conn.execute(
+                "SELECT id FROM hypothesis WHERE tenant_id=?", (ctx.tenant_id,))]
+            raise ValueError(f"hypothesis not found: {a.hypothesis_id}. "
+                             f"Valid hypothesis ids: {ids}")
     rows = ctx.conn.execute(
         "SELECT i.id, i.name, fi.amount_wt_pct FROM formulation_item fi "
         "JOIN ingredient i ON i.id=fi.ingredient_id WHERE fi.formulation_id=?",
