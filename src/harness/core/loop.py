@@ -81,6 +81,11 @@ def run_agent(model, ctx, goal, autonomy="approve", trigger="manual",
                                          "status": "pending_approval",
                                          "note": "Identical action already queued.",
                                          "action_id": dup["id"]})})
+                    emit("tool_call", {"run_id": run_id, "tool": c["name"],
+                                       "args": c["arguments"], "decision": decision,
+                                       "result": {"status": "pending_approval",
+                                                  "note": "Identical action already queued.",
+                                                  "action_id": dup["id"]}})
                     continue
             if decision == "execute":
                 result = call_tool(ctx, c["name"], c["arguments"])
