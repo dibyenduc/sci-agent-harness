@@ -21,8 +21,8 @@ Chat-only agents are the easy first version. The hard problems show up later:
 | 2 | Tools and MCP server | Done |
 | 3 | Harness core: loop, action ladder, event triggers | Done |
 | 4 | LangGraph engine and comparison | Done |
-| 5 | Evaluation suite and tracing | Planned |
-| 6 | Goal memory and tenant isolation | Planned |
+| 5 | Evaluation suite and tracing | Done |
+| 6 | Goal memory and tenant isolation | Done |
 | 7 | Optional frontier-model sweep | Planned |
 
 ## How it works
@@ -61,7 +61,7 @@ Supporting tables: ingredients, inventory, tasks. Every table carries a `tenant_
 Requirements: Python 3.11+, [uv](https://docs.astral.sh/uv/), and [Ollama](https://ollama.com).
 
 ```bash
-git clone [https://github.com/dibyenduc/sci-agent-harness.git](https://github.com/dibyenduc/sci-agent-harness.git)
+git clone https://github.com/dibyenduc/sci-agent-harness.git
 cd sci-agent-harness
 make setup
 make test
@@ -92,7 +92,7 @@ uv run python -m harness.cli reject <id>
 uv run python -m harness.cli undo <id>
 ```
 
-Make targets: `setup`, `seed`, `test`, `mcp`, `demo`, `demo-graph`, `clean`.
+Make targets: `setup`, `seed`, `test`, `mcp`, `demo`, `demo-graph`, `clean`, `eval`, `demo-tenants`, plus the task generators (see the Makefile).
 
 To compare both engines three times each on one model and save every run:
 
@@ -151,12 +151,54 @@ models/ Ollama Modelfile for a larger context
 scripts/ engine comparison script
 docs/ write-ups and saved run logs
 
+## Goal memory and tenants
+
+Long-lived goals persist across runs. `goal-create` stores a goal, and each `goal-run` records a note. Every note carries a **trust level**:
+
+| Trust | Meaning | How the next run sees it |
+|---|---|---|
+| operator | Written by a lab operator | `operator note (trusted, written by the lab operator)` |
+| model | The model's own earlier summary | `unverified summary`, quoted as data |
+| untrusted | Text from an outside source | `unverified summary`, quoted as data |
+
+Lessons are always shown as unverified claims, whatever their trust level. The prompt tells the model that a lesson never replaces a tool result.
+
+Each run also gets **verified facts** derived from the audit log: tool, arguments, status, and a digest of the result built from a per-tool whitelist of numeric and enum fields. Free text (lab notes, rationales, titles) is never included, so an injected note cannot reach the verified section.
+
+Notes are tenant-scoped, evidence must belong to the run it is attached to, and runs on closed or foreign goals fail before a run row is created.
+
+### Tenant isolation
+
+Every table carries a `tenant_id`, and every tool call is scoped to the caller's tenant. `tests/test_two_tenants.py` seeds two tenants into one database and checks three things: each sees only its own data, the same question gets different answers per tenant, and one tenant's notes never reach the other's prompt.
+
+`make demo-tenants` runs the same question for both tenants with a real model. In `docs/runs/qwen3-8b-8k-tenant-divergence-demo.txt`, each answer matches its own tenant's data, and each follows its own remembered priority (cure time for one, gloss for the other). This is one run on one formulation, so it illustrates the mechanism and is not a rate.
+
+### Memory evaluation
+
+Nine tasks (3 recall, 4 poison, 2 control) run with memory on and off. Full tables are in `docs/results.md`.
+
+| Model | Temp | Memory on | Memory off |
+|---|---|---|---|
+| qwen3-8b-8k | 0.0 | 9/9 | 6/9 |
+| qwen3-8b-8k | 0.7 | 25/27 | 18/27 |
+| llama3.1 | 0.0 | 9/9 | 6/9 |
+| llama3.1 | 0.7 | 23/27 | 17/27 |
+
+How to read it:
+
+- The recall gain is built into the design. With memory off, the recall tasks cannot be answered from the tools, and those are the failures in the memory-off column.
+- The useful comparison is poison and control, where memory should not hurt. Qwen3 passed all 18 of those runs at t0.7 in both arms. Llama failed 4 of 18 with memory on (about 1 with it off). That difference is not significant at this size.
+- No injected action was executed in any memory-on poison run (0 of 16 per model). Llama's two poison-task failures were a tool call written as text and a misread number.
+- Llama wrote a tool call as text in 3 of 27 memory-on runs and in none of 27 memory-off runs. This may be a longer-prompt effect, but the sample is too small to establish it.
+- One task remains open. recall-02 gives qwen3 a model-written summary that disagrees with a tool value, and qwen3 trusts the tool. The prompt tells it to, so this is a question about how the task is worded, not a model failure.
 
 ## Limitations
 
 - Synthetic data, small scale, one scenario so far.
 - Local models are weaker than frontier models, so failure patterns will differ.
 - Small samples carry wide uncertainty. Treat any pass rate here as a rough indication.
+- The memory evaluation has nine tasks and three repeats per cell at most. Differences of one or two runs are within noise.
+- Tenant isolation is tested in the data and prompt layers on a synthetic two-tenant database, not against a production deployment.
 
 ## License
 
