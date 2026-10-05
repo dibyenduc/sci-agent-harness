@@ -4,6 +4,8 @@ FORM_RE = re.compile(r"F-\d{4}(?:-D\d+)?")
 WIN_RE = re.compile(r"winn\w*[^\n]{0,40}?(F-\d{4}(?:-D\d+)?)", re.I)
 NUM_RE = re.compile(r"-?\d[\d,]*\.?\d*")
 NEG_FAIL = re.compile(r"\b(no|none|zero|not|never)\b[^.\n]{0,20}\bfail\w*")
+NEG_FAIL_AFTER = re.compile(
+    r"\bfail\w*[^.\n:]{0,25}:\s*\**\s*(none|nil|n/a|zero)\b")
 FAIL_WORDS = ["fail", "out of spec", "outside", "exceeds", "not within",
               "does not meet", "not pass", "off-spec"]
 PASS_WORDS = ["pass", "within spec", "meets", "in spec"]
@@ -23,6 +25,7 @@ def numbers(text: str) -> list[float]:
 
 def verdict(text: str) -> str:
     t = NEG_FAIL.sub("", text.lower())
+    t = NEG_FAIL_AFTER.sub("", t)
     if any(w in t for w in FAIL_WORDS):
         return "fail"
     if any(w in t for w in PASS_WORDS):
