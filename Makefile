@@ -52,3 +52,6 @@ tasks-5c:
 
 report:
 	uv run python -m harness.evalkit.report
+
+tasks-mem:
+	uv run python -m harness.evalkit.make_memory
