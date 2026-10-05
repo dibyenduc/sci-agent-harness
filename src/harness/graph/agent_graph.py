@@ -61,8 +61,11 @@ def build_graph(model, ctx, run_id, autonomy="approve", trigger="manual",
             seen[key] = seen.get(key, 0) + 1
             if seen[key] > 2:
                 status = "loop_detected"
+                emit("loop_detected", {"run_id": run_id, "step": s["steps"],
+                                       "tool": c["name"], "args": c["arguments"],
+                                       "count": seen[key]})
                 break
-            result, decision = execute_tool_call(ctx, run_id, autonomy, c)
+            result, decision = execute_tool_call(ctx, run_id, autonomy, c, emit)
             emit("tool_call", {"run_id": run_id, "tool": c["name"],
                                "args": c["arguments"], "decision": decision,
                                "result": result})

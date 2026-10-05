@@ -30,6 +30,12 @@ def main():
             if e.get("kind") == "tool_call":
                 print("  ", e["tool"], e["decision"], json.dumps(e["args"])[:90],
                       err_text(e.get("result", {})))
+            elif e.get("kind") == "duplicate_skipped":
+                print("  ", e["tool"], "DUPLICATE_SKIPPED", json.dumps(e["args"])[:90],
+                      f"(action {e.get('action_id')})")
+            elif e.get("kind") == "loop_detected":
+                print("  ", e["tool"], f"LOOP_DETECTED x{e.get('count')}",
+                      json.dumps(e["args"])[:90])
         print("   FINAL:", (h["result"]["final"] or "")[:260].replace("\n", " "))
 
 

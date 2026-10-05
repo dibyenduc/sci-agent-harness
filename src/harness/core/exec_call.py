@@ -4,7 +4,7 @@ from . import store
 from .policy import decide
 
 
-def execute_tool_call(ctx, run_id, autonomy, c):
+def execute_tool_call(ctx, run_id, autonomy, c, emit=None):
     tool = REGISTRY.get(c["name"])
     risk = tool.risk if tool else "read"
     decision = decide(risk, autonomy) if tool else "execute"
@@ -16,6 +16,10 @@ def execute_tool_call(ctx, run_id, autonomy, c):
             " AND args_json=? AND status='pending'",
             (ctx.tenant_id, c["name"], args_json)).fetchone()
         if dup:
+            if emit:
+                emit("duplicate_skipped", {"run_id": run_id, "tool": c["name"],
+                                           "args": c["arguments"],
+                                           "action_id": dup["id"]})
             return ({"status": "pending_approval",
                      "note": "Identical action already queued.",
                      "action_id": dup["id"]}, decision)

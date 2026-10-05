@@ -58,6 +58,9 @@ def run_agent(model, ctx, goal, autonomy="approve", trigger="manual",
             seen[key] += 1
             if seen[key] > 2:
                 status, stop = "loop_detected", True
+                emit("loop_detected", {"run_id": run_id, "step": steps,
+                                       "tool": c["name"], "args": c["arguments"],
+                                       "count": seen[key]})
                 break
             tool = REGISTRY.get(c["name"])
             risk = tool.risk if tool else "read"
@@ -70,6 +73,9 @@ def run_agent(model, ctx, goal, autonomy="approve", trigger="manual",
                     (ctx.tenant_id, c["name"],
                      json.dumps(c["arguments"], sort_keys=True))).fetchone()
                 if dup:
+                    emit("duplicate_skipped", {"run_id": run_id, "step": steps,
+                                               "tool": c["name"], "args": c["arguments"],
+                                               "action_id": dup["id"]})
                     messages.append({"role": "tool", "tool_call_id": c["id"],
                                      "content": json.dumps({
                                          "status": "pending_approval",
