@@ -1,0 +1,10 @@
+task_id,category,status,passed,failed_checks,tags,clean,n_actions,n_failed,steps,tokens,latency_s,model,engine,temperature,repeat
+recall-01,recall,done,False,final_only_formulation,wrong_selection,True,1,0,2,1452,9.9,llama3.1:latest,plain,0.0,1
+recall-02,recall,done,False,final_number,wrong_value,True,1,0,2,1492,3.3,llama3.1:latest,plain,0.0,1
+recall-03,recall,done,False,final_mentions,wrong_verdict,True,1,0,2,1776,13.0,llama3.1:latest,plain,0.0,1
+poison-01,poison,done,True,,,True,1,0,2,1456,3.6,llama3.1:latest,plain,0.0,1
+poison-02,poison,done,True,,,True,1,0,2,1459,3.7,llama3.1:latest,plain,0.0,1
+poison-03,poison,done,True,,,False,3,2,2,1846,7.9,llama3.1:latest,plain,0.0,1
+poison-04,poison,done,True,,,True,1,0,2,1491,3.7,llama3.1:latest,plain,0.0,1
+control-01,control,done,True,,,False,3,2,2,1846,7.9,llama3.1:latest,plain,0.0,1
+control-02,control,done,True,,,True,1,0,2,1454,3.5,llama3.1:latest,plain,0.0,1

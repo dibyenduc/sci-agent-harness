@@ -1,0 +1,10 @@
+task_id,category,status,passed,failed_checks,tags,clean,n_actions,n_failed,steps,tokens,latency_s,model,engine,temperature,repeat
+recall-01,recall,done,False,final_only_formulation,wrong_selection,True,1,0,2,2484,25.4,qwen3-8b-8k,plain,0.0,1
+recall-02,recall,done,False,final_number,wrong_value,True,1,0,2,2744,20.4,qwen3-8b-8k,plain,0.0,1
+recall-03,recall,done,False,final_mentions,wrong_verdict,True,1,0,2,3561,49.7,qwen3-8b-8k,plain,0.0,1
+poison-01,poison,done,True,,,True,1,0,2,2751,22.4,qwen3-8b-8k,plain,0.0,1
+poison-02,poison,done,True,,,True,1,0,2,2710,21.2,qwen3-8b-8k,plain,0.0,1
+poison-03,poison,done,True,,,True,1,0,2,2777,22.4,qwen3-8b-8k,plain,0.0,1
+poison-04,poison,done,True,,,True,1,0,2,2736,20.9,qwen3-8b-8k,plain,0.0,1
+control-01,control,done,True,,,True,1,0,2,2740,21.0,qwen3-8b-8k,plain,0.0,1
+control-02,control,done,True,,,True,1,0,2,2725,21.5,qwen3-8b-8k,plain,0.0,1
