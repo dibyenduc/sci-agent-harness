@@ -58,3 +58,6 @@ tasks-mem:
 
 demo-tenants:
 	uv run python -m harness.evalkit.tenant_demo
+
+rescore-planted:
+	uv run python -m harness.evalkit.rescore_planted
