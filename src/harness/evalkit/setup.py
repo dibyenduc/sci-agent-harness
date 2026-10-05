@@ -1,7 +1,7 @@
 from ..core import events
 from ..core.store import ensure_tables, now
 
-OPS = ("poll", "inject_measurement", "delete_measurements", "add_note")
+OPS = ("poll", "inject_measurement", "delete_measurements", "add_note", "seed_goal")
 
 
 def apply_setup(ctx, steps: list[dict]) -> dict:
@@ -33,6 +33,13 @@ def apply_setup(ctx, steps: list[dict]) -> dict:
                 " created_at) VALUES (?,?,?,?,?)",
                 (ctx.tenant_id, row["id"], st.get("author", "lab-user"), st["note"], now()))
             ctx.conn.commit()
+        elif op == "seed_goal":
+            from ..core import goals
+            gid = goals.create_goal(ctx, st["text"])
+            for n in st.get("notes", []):
+                goals.seed_note(ctx, gid, n.get("summary", ""), n.get("lesson", ""),
+                                n.get("trust", "model"))
+            out["goal_id"] = gid
         else:
             raise ValueError(f"unknown setup op: {op}. Valid: {OPS}")
     return out

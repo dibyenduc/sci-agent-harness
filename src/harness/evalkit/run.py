@@ -40,7 +40,7 @@ def resolve_goal(task, setup_out):
     return event_to_goal(setup_out["events"][0])
 
 
-def run_one(task, model, runner, trace_path):
+def run_one(task, model, runner, trace_path, memory=True):
     with tempfile.TemporaryDirectory() as d:
         db = Path(d) / "w.db"
         shutil.copy(BASE_DB, db)
@@ -51,11 +51,12 @@ def run_one(task, model, runner, trace_path):
         goal = resolve_goal(task, setup_out)
         task = {**task, "goal": goal}
         events: list[dict] = []
+        gkw = {"goal_id": setup_out["goal_id"]} if memory and "goal_id" in setup_out else {}
         t0 = time.time()
         try:
             r = runner(model, ctx, goal, autonomy=task.get("autonomy", "approve"),
                        trigger=task.get("trigger", "manual"),
-                       on_event=lambda k, p: events.append({"kind": k, **p}))
+                       on_event=lambda k, p: events.append({"kind": k, **p}), **gkw)
         except Exception as e:
             r = {"status": f"error:{type(e).__name__}", "final": str(e), "steps": 0, "tokens": 0}
         latency = time.time() - t0
@@ -89,6 +90,7 @@ def main():
     ap.add_argument("--repeats", type=int, default=1)
     ap.add_argument("--category")
     ap.add_argument("--limit", type=int)
+    ap.add_argument("--memory", default="on", choices=["on", "off"])
     a = ap.parse_args()
     if not BASE_DB.exists():
         raise SystemExit("Base database missing. Run: make tasks")
@@ -105,12 +107,15 @@ def main():
     tasks = load_tasks(a.tasks, a.category, a.limit)
     print(f"model={a.model} engine={a.engine} temp={a.temperature} tasks={len(tasks)} repeats={a.repeats}")
     rows = []
+    if a.memory == "off":
+        tag += "-nomem"
     out = Path(f"evals/results/{tag}.csv")
     out.parent.mkdir(parents=True, exist_ok=True)
     try:
         for t in tasks:
             for rep in range(1, a.repeats + 1):
-                row = run_one(t, model, runner, Path(f"evals/traces/{tag}/{t['id']}-r{rep}.jsonl"))
+                row = run_one(t, model, runner, Path(f"evals/traces/{tag}/{t['id']}-r{rep}.jsonl"),
+                          memory=a.memory == "on")
                 row.update({"model": a.model, "engine": a.engine,
                             "temperature": a.temperature, "repeat": rep})
                 rows.append(row)

@@ -5,7 +5,7 @@ def prepare(ctx, goal_id: int, goal: str) -> str:
     g = goals.get_goal(ctx, goal_id)
     if g["status"] != "active":
         raise ValueError(f"goal {goal_id} is {g['status']}, not active")
-    memory = goals.render_memory(ctx, goal_id)
+    memory = goals.render_memory(ctx, goal_id, query=goal)
     return goal + ("\n\n" + memory if memory else "")
 
 
