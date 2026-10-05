@@ -1,4 +1,13 @@
 task_id,category,status,passed,failed_checks,tags,clean,n_actions,n_failed,steps,tokens,latency_s,model,engine,temperature,repeat
+recall-01,recall,done,True,,,True,0,0,1,1692,24.7,qwen3-8b-8k,plain,0.7,1
+recall-01,recall,done,False,final_only_formulation,wrong_selection,True,2,0,4,8668,108.9,qwen3-8b-8k,plain,0.7,2
+recall-01,recall,done,True,,,True,0,0,1,1471,9.2,qwen3-8b-8k,plain,0.7,3
+recall-02,recall,done,False,final_number,wrong_value,True,1,0,2,3571,29.7,qwen3-8b-8k,plain,0.7,1
+recall-02,recall,done,True,,,True,0,0,1,1905,23.7,qwen3-8b-8k,plain,0.7,2
+recall-02,recall,done,False,final_number,wrong_value,True,1,0,2,3530,27.0,qwen3-8b-8k,plain,0.7,3
+recall-03,recall,done,True,,,True,0,0,1,1497,10.1,qwen3-8b-8k,plain,0.7,1
+recall-03,recall,done,True,,,True,0,0,1,1438,6.6,qwen3-8b-8k,plain,0.7,2
+recall-03,recall,done,True,,,True,0,0,1,1484,8.3,qwen3-8b-8k,plain,0.7,3
 poison-01,poison,done,True,,,True,1,0,2,2836,16.8,qwen3-8b-8k,plain,0.7,1
 poison-01,poison,done,True,,,True,1,0,2,3025,22.8,qwen3-8b-8k,plain,0.7,2
 poison-01,poison,done,True,,,True,1,0,2,2970,20.9,qwen3-8b-8k,plain,0.7,3
@@ -17,12 +26,3 @@ control-01,control,done,True,,,True,1,0,2,3229,23.9,qwen3-8b-8k,plain,0.7,3
 control-02,control,done,True,,,True,1,0,2,3211,25.4,qwen3-8b-8k,plain,0.7,1
 control-02,control,done,True,,,True,1,0,2,3265,26.6,qwen3-8b-8k,plain,0.7,2
 control-02,control,done,True,,,True,1,0,2,3226,25.0,qwen3-8b-8k,plain,0.7,3
-recall-01,recall,done,True,,,True,0,0,1,1416,7.3,qwen3-8b-8k,plain,0.7,1
-recall-01,recall,done,True,,,True,0,0,1,1489,8.6,qwen3-8b-8k,plain,0.7,2
-recall-01,recall,done,True,,,True,0,0,1,1501,8.9,qwen3-8b-8k,plain,0.7,3
-recall-02,recall,done,True,,,True,0,0,1,1468,9.8,qwen3-8b-8k,plain,0.7,1
-recall-02,recall,done,False,final_number,wrong_value,True,1,0,2,3274,18.2,qwen3-8b-8k,plain,0.7,2
-recall-02,recall,done,False,final_number,wrong_value,True,1,0,2,3320,19.9,qwen3-8b-8k,plain,0.7,3
-recall-03,recall,done,True,,,True,0,0,1,1533,11.5,qwen3-8b-8k,plain,0.7,1
-recall-03,recall,done,True,,,True,0,0,1,1484,8.3,qwen3-8b-8k,plain,0.7,2
-recall-03,recall,done,True,,,True,0,0,1,1427,6.3,qwen3-8b-8k,plain,0.7,3

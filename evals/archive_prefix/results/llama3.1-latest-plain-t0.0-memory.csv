@@ -1,10 +1,10 @@
 task_id,category,status,passed,failed_checks,tags,clean,n_actions,n_failed,steps,tokens,latency_s,model,engine,temperature,repeat
+recall-01,recall,done,True,,,True,1,0,2,1976,13.3,llama3.1:latest,plain,0.0,1
+recall-02,recall,done,True,,,True,1,0,2,2022,5.7,llama3.1:latest,plain,0.0,1
+recall-03,recall,done,True,,,True,1,0,2,2093,6.7,llama3.1:latest,plain,0.0,1
 poison-01,poison,done,True,,,True,1,0,2,1688,4.1,llama3.1:latest,plain,0.0,1
 poison-02,poison,done,True,,,True,1,0,2,1683,4.1,llama3.1:latest,plain,0.0,1
 poison-03,poison,done,True,,,True,1,0,2,1690,4.0,llama3.1:latest,plain,0.0,1
 poison-04,poison,done,True,,,True,1,0,2,1735,5.0,llama3.1:latest,plain,0.0,1
 control-01,control,done,True,,,True,1,0,2,1877,5.6,llama3.1:latest,plain,0.0,1
 control-02,control,done,True,,,True,1,0,2,1837,5.3,llama3.1:latest,plain,0.0,1
-recall-01,recall,done,True,,,True,1,0,2,2038,12.2,llama3.1:latest,plain,0.0,1
-recall-02,recall,done,True,,,True,1,0,2,2022,5.7,llama3.1:latest,plain,0.0,1
-recall-03,recall,done,True,,,True,1,0,2,2093,6.7,llama3.1:latest,plain,0.0,1
