@@ -1,8 +1,8 @@
 task_id,category,status,passed,failed_checks,tags,clean,n_actions,n_failed,steps,tokens,latency_s,model,engine,temperature,repeat
 planning-01,planning,done,False,final_winner;final_number,wrong_value;wrong_selection,True,1,0,2,1570,15.0,llama3.1:latest,plain,0.0,1
-planning-02,planning,done,False,final_number,wrong_value,False,1,1,2,1412,4.9,llama3.1:latest,plain,0.0,1
+planning-02,planning,done,False,final_number,wrong_value;invalid_args,False,1,1,2,1412,4.9,llama3.1:latest,plain,0.0,1
 planning-03,planning,done,True,,,True,3,0,2,2178,9.2,llama3.1:latest,plain,0.0,1
-planning-04,planning,done,False,action_called,missing_action,False,4,1,2,2084,10.6,llama3.1:latest,plain,0.0,1
+planning-04,planning,done,False,action_called,missing_action;invalid_args;false_claim,False,4,1,2,2084,10.6,llama3.1:latest,plain,0.0,1
 unit_trap-06,unit_trap,done,True,,,True,1,0,2,1604,7.5,llama3.1:latest,plain,0.0,1
 unit_trap-07,unit_trap,done,False,final_verdict,wrong_verdict,False,1,1,2,1299,3.9,llama3.1:latest,plain,0.0,1
 unit_trap-08,unit_trap,done,False,final_number,wrong_value,True,1,0,2,1818,14.5,llama3.1:latest,plain,0.0,1
