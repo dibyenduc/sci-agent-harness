@@ -55,3 +55,6 @@ report:
 
 tasks-mem:
 	uv run python -m harness.evalkit.make_memory
+
+demo-tenants:
+	uv run python -m harness.evalkit.tenant_demo

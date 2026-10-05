@@ -40,9 +40,9 @@ def properties(a, rng):
                                + rng.normal(0, 3), 10, 100)),
     }
 
-def seed(path="lab.db", tenant="tenant_a", n=200, rng_seed=7):
+def seed(path="lab.db", tenant="tenant_a", n=200, rng_seed=7, reset=True):
     rng = np.random.default_rng(rng_seed)
-    conn = init_db(path, reset=True)
+    conn = init_db(path, reset=reset)
     ids = []
     for name, role in INGREDIENTS:
         cur = conn.execute(

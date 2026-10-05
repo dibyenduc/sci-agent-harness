@@ -1,0 +1,19 @@
+model=qwen3-8b-8k formulation=F-0001
+QUESTION: Does F-0001 meet the full coating_std spec? Name every failing property, then say which failing property we should fix first and why.
+
+== tenant_a
+ground truth (tool): failing = ['viscosity']
+memory: Tenant A coats steel panels. Cure time is our first priority.
+ANSWER: F-0001 fails **viscosity** (245.15 mPa.s vs. spec min 800 mPa.s). All other properties (cure_time, hardness, gloss) pass. 
+
+The only failing property is viscosity. While the operator note prioritizes cure_time, it already meets the spec. We should fix **viscosity first** because it's the sole failure, and the spec requires it to be ≥800 mPa.s. The current value is ~245 mPa.s, which is 65% of the minimum spec. This could affect coating performance. 
+
+No other properties need attention.
+
+== tenant_b
+ground truth (tool): failing = ['viscosity', 'gloss']
+memory: Tenant B coats glass panels. Gloss is our first priority.
+ANSWER: F-0001 fails **viscosity** (742.85 mPa.s vs spec 800-2500) and **gloss** (62.75 GU vs spec 70-95). 
+
+**Fix gloss first** because the lab operator explicitly prioritizes gloss for glass panel coating (per the trusted note). While viscosity is also failing, the specified priority for gloss makes it the critical issue to address first.
+

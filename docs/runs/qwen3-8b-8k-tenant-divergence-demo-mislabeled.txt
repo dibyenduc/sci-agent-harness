@@ -1,0 +1,4 @@
+# Superseded run: render_memory labelled operator notes "unverified summary".
+# Tenant B answer: "improving gloss aligns with the stated priority" citing
+# "the unverified summary stating 'gloss is our first priority'".
+# Fixed in goals.render_memory; see tests/test_memory_labels.py.

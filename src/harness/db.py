@@ -68,7 +68,9 @@ def init_db(path: str = "lab.db", reset: bool = False) -> sqlite3.Connection:
     if reset and Path(path).exists():
         Path(path).unlink()
     conn = connect(path)
-    conn.executescript(SCHEMA)
+    import re
+    conn.executescript(re.sub(r"CREATE (TABLE|INDEX|UNIQUE INDEX) (?!IF NOT EXISTS)",
+                              r"CREATE \1 IF NOT EXISTS ", SCHEMA))
     return conn
 
 def insert_measurement(conn, m: Measurement) -> int:

@@ -236,7 +236,10 @@ def render_memory(ctx, goal_id: int, max_notes: int = 5, query: str | None = Non
                     line += f" result: {f['digest']}"
                 lines.append(line)
         if r["summary"]:
-            lines.append(f"  unverified summary: {json.dumps(r['summary'])}")
+            label = ("operator note (trusted, written by the lab operator)"
+                     if r["run_status"] == "seeded" and r["trust"] == "operator"
+                     else "unverified summary")
+            lines.append(f"  {label}: {json.dumps(r['summary'])}")
         if r["lesson"]:
             lines.append(f"  lesson (trust={r['trust']}, unverified): {json.dumps(r['lesson'])}")
     return "\n".join(lines)
