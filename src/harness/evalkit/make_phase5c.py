@@ -85,7 +85,10 @@ def build_phase5c_tasks(conn, seed_value: int = 53) -> list[dict]:
         f"What is the viscosity of {p1} in Pa.s? Report the number in Pa.s.",
         [done, {"type": "final_number", "value": round(m[(p1, "viscosity")][0] / 1000, 4),
                 "rel_tol": 0.01}])
-    p2 = rng.choice(pa_in_range)
+    rng.choice(pa_in_range)
+    pa_clean = [n for n in pa_in_range if not failing(n)]
+    assert pa_clean, 'no Pa.s formulation passes every property'
+    p2 = random.Random(seed_value + 1).choice(pa_clean)
     add("unit_trap",
         f"Does {p2} meet the viscosity spec of 800 to 2500 mPa.s? Answer pass or fail.",
         [done, {"type": "final_verdict", "value": "pass"}])

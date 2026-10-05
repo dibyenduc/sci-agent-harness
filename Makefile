@@ -46,3 +46,6 @@ tasks-reason:
 eval:
 	uv run python -m harness.evalkit.run $(ARGS)
 
+
+tasks-5c:
+	uv run python -m harness.evalkit.make_phase5c
