@@ -49,3 +49,6 @@ eval:
 
 tasks-5c:
 	uv run python -m harness.evalkit.make_phase5c
+
+report:
+	uv run python -m harness.evalkit.report
