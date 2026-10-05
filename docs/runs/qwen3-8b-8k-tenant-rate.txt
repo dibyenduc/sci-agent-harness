@@ -1,0 +1,35 @@
+model=qwen3-8b-8k formulations=10
+F-0001 tenant_a want=['viscosity'] ok=True also_mentions=['cure_time', 'hardness', 'gloss']
+   ANSWER: f-0001 fails **viscosity** (245.15 mpa.s vs. spec min 800 mpa.s). all other properties (cure_time, hardness, gloss) pass.   the only failing property is viscosity. while the operator note prioritizes cure_time, it already meets the spec. we should fix **viscosity first** because it's the sole failur
+F-0001 tenant_b want=['viscosity', 'gloss'] ok=True also_mentions=[]
+F-0007 tenant_a want=['viscosity', 'hardness', 'gloss'] ok=True also_mentions=[]
+F-0007 tenant_b want=['viscosity'] ok=True also_mentions=['cure_time', 'hardness', 'gloss']
+   ANSWER: f-0007 fails **viscosity** (798.17 mpa.s vs. spec min 800.0 mpa.s). all other properties (cure_time, hardness, gloss) pass.   the only failing property is viscosity. since the operator prioritizes gloss, but gloss is already compliant, we should fix **viscosity first** because it's the only critical
+F-0010 tenant_a want=['viscosity', 'gloss'] ok=True also_mentions=['hardness']
+   ANSWER: f-0010 fails **viscosity** (701.54 mpa.s < 800 mpa.s min) and **gloss** (100.0 gu > 95.0 gu max). cure time and hardness pass.    **fix viscosity first** because the lab operator prioritizes cure time (already passing), and viscosity is a critical property for coating application. low viscosity may 
+F-0010 tenant_b want=['viscosity', 'hardness'] ok=True also_mentions=['gloss']
+   ANSWER: f-0010 fails **viscosity** (236.324 mpa.s vs. spec min 800) and **hardness** (57.226 shore d vs. spec min 60). gloss and cure time pass.   **fix hardness first** because it is closer to the spec minimum (57 vs. 60) than viscosity (236 vs. 800), and the operator noted gloss is a priority, implying ot
+F-0011 tenant_a want=['cure_time', 'gloss'] ok=True also_mentions=[]
+F-0011 tenant_b want=['gloss'] ok=True also_mentions=['viscosity', 'cure_time', 'hardness']
+   ANSWER: f-0011 fails **gloss** (100.0 gu vs. spec max 95.0 gu). all other properties (viscosity, cure_time, hardness) pass.   the **gloss failure** is the only issue, and since tenant b prioritizes gloss for glass panels, this is the critical property to fix first. excess gloss could indicate improper solve
+F-0012 tenant_a want=['gloss'] ok=True also_mentions=['viscosity', 'cure_time', 'hardness']
+   ANSWER: f-0012 fails **gloss** (58.11 gu vs. spec 70-95 gu). other properties (viscosity, cure_time, hardness) pass.   **fix gloss first** because it's the only failing property and directly impacts coating appearance. low gloss may indicate improper film formation or surface defects, which could affect cus
+F-0012 tenant_b want=['viscosity'] ok=True also_mentions=['cure_time', 'hardness', 'gloss']
+   ANSWER: f-0012 fails **viscosity** (664.668 mpa.s vs. spec 800-2500 mpa.s) but passes cure_time, hardness, and gloss. since the operator prioritizes gloss for glass panels, but gloss is already within spec, the **viscosity failure is the sole issue**. fix viscosity first because it's the only property not m
+F-0020 tenant_a want=['viscosity'] ok=True also_mentions=['cure_time', 'hardness', 'gloss']
+   ANSWER: f-0020 fails **viscosity** (446.764 mpa.s) against coating_std (requires 800-2500 mpa.s). other properties (cure_time, hardness, gloss) pass.   **fix viscosity first** because it's the only failing property, and the operator's note prioritizes cure_time (which is already within spec). viscosity fail
+F-0020 tenant_b want=['cure_time', 'gloss'] ok=True also_mentions=[]
+F-0021 tenant_a want=['viscosity', 'gloss'] ok=True also_mentions=[]
+F-0021 tenant_b want=['viscosity'] ok=True also_mentions=['cure_time', 'hardness', 'gloss']
+   ANSWER: f-0021 fails **viscosity** (771.264 mpa.s vs. spec 800.0-2500.0 mpa.s). other properties (cure_time, hardness, gloss) pass.   **failing property to fix first**: viscosity.   **why**: it is the only failing property, and viscosity directly impacts coating application quality. while gloss is prioritiz
+F-0025 tenant_a want=['cure_time'] ok=True also_mentions=['viscosity', 'hardness', 'gloss']
+   ANSWER: f-0025 fails **cure_time** (5.0 min vs. required 30.0-120.0 min). all other properties (viscosity, hardness, gloss) pass.   we should fix **cure_time first** because the operator note explicitly states "cure time is our first priority" for tenant a's steel panel coating application. this failure dir
+F-0025 tenant_b want=['viscosity'] ok=True also_mentions=['cure_time', 'hardness', 'gloss']
+   ANSWER: f-0025 fails **viscosity** (764.095 mpa.s vs spec min 800.0 mpa.s). all other properties (cure_time, hardness, gloss) pass.   we should fix **viscosity first** because it's the only failing property, and viscosity directly impacts coating application quality (especially for glass panels per the oper
+F-0027 tenant_a want=['cure_time', 'gloss'] ok=True also_mentions=[]
+F-0027 tenant_b want=['hardness', 'gloss'] ok=True also_mentions=[]
+F-0028 tenant_a want=['viscosity', 'cure_time'] ok=True also_mentions=['hardness', 'gloss']
+   ANSWER: f-0028 fails **viscosity** (745.37 mpa.s < 800 mpa.s min) and **cure_time** (129.13 min > 120 min max). other properties (hardness: 64.69 shore d, gloss: 70.74 gu) pass.   **fix cure_time first** per the operator's note about prioritizing cure time for steel panel coating. viscosity is a secondary c
+F-0028 tenant_b want=['cure_time'] ok=True also_mentions=['viscosity', 'hardness', 'gloss']
+   ANSWER: f-0028 fails **cure_time** (23.17 min vs. required 30.0–120.0 min). all other properties (viscosity, hardness, gloss) pass.   since the operator prioritizes **gloss** for tenant b's glass coating, but gloss is already within spec, the only actionable failure is **cure_time**. fixing cure_time first 
+names every tenant-specific failing property: 20/20

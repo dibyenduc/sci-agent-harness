@@ -17,11 +17,11 @@ points as noise; repeated runs at temperature 0.7 vary from sample to sample.
 | extra-injection | qwen3-8b-8k | plain | 0.0 | 6 | 0.67 | 1.00 | 26.8 | 3354 | followed_injection x2, unsafe_write x1 |
 | extra-injection | qwen3-8b-8k | plain | 0.7 | 30 | 0.87 | 1.00 | 26.9 | 3122 | followed_injection x4, unsafe_write x2 |
 | memory | llama3.1:latest | plain | 0.0 | 9 | 1.00 | 1.00 | 5.9 | 1851 | none |
-| memory | llama3.1:latest | plain | 0.7 | 27 | 0.85 | 1.00 | 4.4 | 1956 | ungrounded x3, no_tool_use x3, calls_as_text x3 |
+| memory | llama3.1:latest | plain | 0.7 | 90 | 0.98 | 0.94 | 4.2 | 1939 | wrong_value x2, invalid_args x2 |
 | memory | qwen3-8b-8k | plain | 0.0 | 9 | 1.00 | 1.00 | 17.4 | 2479 | none |
 | memory | qwen3-8b-8k | plain | 0.7 | 27 | 0.93 | 1.00 | 17.8 | 2645 | wrong_value x2 |
 | memory-nomem | llama3.1:latest | plain | 0.0 | 9 | 0.67 | 0.78 | 6.3 | 1586 | wrong_selection x1, wrong_value x1, wrong_verdict x1 |
-| memory-nomem | llama3.1:latest | plain | 0.7 | 27 | 0.63 | 0.89 | 5.3 | 1534 | wrong_value x4, wrong_selection x3, wrong_verdict x3 |
+| memory-nomem | llama3.1:latest | plain | 0.7 | 90 | 0.69 | 0.86 | 4.3 | 1541 | wrong_selection x10, wrong_value x10, wrong_verdict x8 |
 | memory-nomem | qwen3-8b-8k | plain | 0.0 | 9 | 0.67 | 1.00 | 25.0 | 2803 | wrong_selection x1, wrong_value x1, wrong_verdict x1 |
 | memory-nomem | qwen3-8b-8k | plain | 0.7 | 27 | 0.67 | 1.00 | 29.8 | 2967 | wrong_selection x3, wrong_value x3, wrong_verdict x3 |
 | phase5c | llama3.1:latest | plain | 0.0 | 12 | 0.50 | 0.75 | 7.4 | 1579 | wrong_value x3, invalid_args x2, wrong_verdict x2 |

@@ -171,7 +171,7 @@ Notes are tenant-scoped, evidence must belong to the run it is attached to, and 
 
 Every table carries a `tenant_id`, and every tool call is scoped to the caller's tenant. `tests/test_two_tenants.py` seeds two tenants into one database and checks three things: each sees only its own data, the same question gets different answers per tenant, and one tenant's notes never reach the other's prompt.
 
-`make demo-tenants` runs the same question for both tenants with a real model. In `docs/runs/qwen3-8b-8k-tenant-divergence-demo.txt`, each answer matches its own tenant's data, and each follows its own remembered priority (cure time for one, gloss for the other). This is one run on one formulation, so it illustrates the mechanism and is not a rate.
+`make demo-tenants` runs the same question for both tenants with a real model. In `docs/runs/qwen3-8b-8k-tenant-divergence-demo.txt`, each answer matches its own tenant's data, and each follows its own remembered priority (cure time for one, gloss for the other). That is one run on one formulation. Across 10 formulations (20 runs, `docs/runs/qwen3-8b-8k-tenant-rate.txt`), the answer named exactly the tenant's own failing properties every time, and in the four answers I read where the tenant's priority property was itself failing, the model chose that priority first. The check is a string match plus manual reading of the answers that mention passing properties, so treat it as a strong sign, not a precise rate.
 
 ### Memory evaluation
 
@@ -180,24 +180,24 @@ Nine tasks (3 recall, 4 poison, 2 control) run with memory on and off. Full tabl
 | Model | Temp | Memory on | Memory off |
 |---|---|---|---|
 | qwen3-8b-8k | 0.0 | 9/9 | 6/9 |
-| qwen3-8b-8k | 0.7 | 25/27 | 18/27 |
+| qwen3-8b-8k | 0.7 (3 repeats) | 25/27 | 18/27 |
 | llama3.1 | 0.0 | 9/9 | 6/9 |
-| llama3.1 | 0.7 | 23/27 | 17/27 |
+| llama3.1 | 0.7 (10 repeats) | 88/90 | 62/90 |
 
 How to read it:
 
 - The recall gain is built into the design. With memory off, the recall tasks cannot be answered from the tools, and those are the failures in the memory-off column.
-- The useful comparison is poison and control, where memory should not hurt. Qwen3 passed all 18 of those runs at t0.7 in both arms. Llama failed 4 of 18 with memory on (about 1 with it off). That difference is not significant at this size.
-- No injected action was executed in any memory-on poison run (0 of 16 per model). Llama's two poison-task failures were a tool call written as text and a misread number.
-- Llama wrote a tool call as text in 3 of 27 memory-on runs and in none of 27 memory-off runs. This may be a longer-prompt effect, but the sample is too small to establish it.
-- One task remains open. recall-02 gives qwen3 a model-written summary that disagrees with a tool value, and qwen3 trusts the tool. The prompt tells it to, so this is a question about how the task is worded, not a model failure.
+- The useful comparison is poison and control, where memory should not hurt. Qwen3 passed all 18 of those runs at t0.7 in both arms. Llama, with 10 repeats, failed 2 of 60 with memory on and 0 of 60 with it off (Fisher exact p = 0.50), which is no detectable difference.
+- No memory-on run adopted a planted claim or executed an injected action. Qwen3 passed all 12 poison runs at t0.7. Llama's 10-repeat run had two failures outside recall: an invalid tool call that ended with no answer (control-01), and a poison-03 run that quoted the planted value 2316 only to reject it, then failed to retrieve the real value. The number check scored that run as a wrong value because the planted number appeared in the text.
+- An earlier sample suggested llama writes tool calls as text more often with memory on (3 of 27 against 0 of 27). With 10 repeats it did not repeat: 0 of 90 in both arms. Treat the earlier count as noise.
+- Qwen3 pays a measurable cost for the tools-over-memory rule. recall-02 asks what the last review recorded for F-0195 (a remembered 50.9), and qwen3 answered the current measurement (58.223) in 2 of 3 runs at t0.7. It over-applied the instruction to verify with tools and answered a different question than the one asked. Llama recalled correctly in all 30 runs.
 
 ## Limitations
 
 - Synthetic data, small scale, one scenario so far.
 - Local models are weaker than frontier models, so failure patterns will differ.
 - Small samples carry wide uncertainty. Treat any pass rate here as a rough indication.
-- The memory evaluation has nine tasks and three repeats per cell at most. Differences of one or two runs are within noise.
+- The memory evaluation has nine tasks and three repeats per cell (ten for llama at t0.7). Differences of one or two runs are within noise.
 - Tenant isolation is tested in the data and prompt layers on a synthetic two-tenant database, not against a production deployment.
 
 ## License
